@@ -1,4 +1,4 @@
-# Weather-
+# Photo Weather Advisor
 
 摄影天气助手（Photo Weather Advisor）
 
