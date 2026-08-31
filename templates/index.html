@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>摄影天气 · Photo Weather</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:ital,wght@0,400;0,700;0,900;1,400&family=Noto+Sans+SC:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    /* ============================================================
+       Editorial · 黑白冷灰 · 不对称布局
+       ============================================================ */
+    :root {
+      --paper: #f6f5f1;        /* 旧纸感米白 */
+      --ink: #0e0e0e;          /* 近黑文字 */
+      --ink-soft: #4a4a4a;     /* 次级文字 */
+      --ink-faint: #8c8c8c;    /* 辅助文字 */
+      --line: #1a1a1a;         /* 分隔线 */
+      --rule: #d6d3cb;         /* 浅分隔线 */
+      --accent: #c66b2d;       /* 火烧云暖色，仅一处用 */
+      --bg-warm: #efece4;      /* 火烧云卡片低饱和底 */
+      --space: 24px;
+      --serif:  "Noto Serif SC", "Songti SC", "SimSun", "宋体", Georgia, serif;
+      --sans:   "Inter", "Helvetica Neue", -apple-system, "PingFang SC",
+                "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { font-size: 16px; }
+    body {
+      font-family: var(--serif);
+      color: var(--ink);
+      background: var(--paper);
+      line-height: 1.7;
+      -webkit-font-smoothing: antialiased;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* ---------- 版心 ---------- */
+    .page {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 36px 32px 80px;
+    }
+
+    /* ---------- 报头 ---------- */
+    .masthead {
+      border-bottom: 1.5px solid var(--line);
+      padding-bottom: 20px;
+      margin-bottom: 32px;
+      display: flex; align-items: baseline; justify-content: space-between;
+      gap: 24px;
+    }
+    .masthead .brand { font-family: var(--sans); font-size: 13px; letter-spacing: 0.16em; text-transform: uppercase; }
+    .masthead .meta { font-family: var(--sans); font-size: 12px; color: var(--ink-faint); font-variant-numeric: tabular-nums; }
+
+    /* ---------- 搜索区（极简一条线） ---------- */
+    .search {
+      display: grid;
+      grid-template-columns: 2fr 1fr auto;
+      gap: 0;
+      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      margin-bottom: 48px;
+    }
+    .search .cell {
+      padding: 14px 16px;
+      border-right: 1px solid var(--rule);
+      display: flex; align-items: center; gap: 12px;
+    }
+    .search .cell:last-child { border-right: none; }
+    .search .lbl {
+      font-family: var(--sans);
+      font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase;
+      color: var(--ink-faint); flex-shrink: 0;
+    }
+    .search input, .search select {
+      flex: 1; border: none; outline: none; background: transparent;
+      font-family: inherit; font-size: 16px; color: var(--ink);
+      padding: 2px 0;
+    }
+    .search input::placeholder { color: var(--ink-faint); }
+    .search button {
+      background: var(--ink); color: var(--paper);
+      border: none; padding: 0 32px;
+      font-family: var(--sans); font-size: 13px;
+      letter-spacing: 0.16em; text-transform: uppercase;
+      cursor: pointer; transition: background 0.15s;
+    }
+    .search button:hover { background: var(--accent); }
+    .search button:disabled { background: var(--ink-faint); cursor: not-allowed; }
+
+    /* ---------- 状态 ---------- */
+    .status {
+      font-family: var(--sans);
+      text-align: center;
+      padding: 80px 20px;
+      color: var(--ink-soft);
+      font-size: 14px;
+    }
+    .status .dot {
+      display: inline-block; width: 6px; height: 6px;
+      background: var(--ink); border-radius: 50%;
+      animation: blink 1.2s ease-in-out infinite;
+      margin-right: 8px; vertical-align: middle;
+    }
+    @keyframes blink { 0%,100% { opacity: 0.2; } 50% { opacity: 1; } }
+    .error {
+      font-family: var(--sans);
+      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      padding: 32px 0;
+      text-align: center;
+      color: var(--ink);
+      font-size: 15px;
+    }
+    .error span { color: var(--ink-faint); font-size: 12px; display: block; margin-top: 6px; }
+    .hidden { display: none !important; }
+
+    /* ---------- 头条：城市 + 总结 ---------- */
+    .headline {
+      display: grid;
+      grid-template-columns: 1.6fr 1fr;
+      gap: 64px;
+      margin-bottom: 56px;
+    }
+    .headline .city-block { border-top: 2px solid var(--line); padding-top: 16px; }
+    .headline .city-block .kicker {
+      font-family: var(--sans);
+      font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--ink-faint);
+    }
+    .headline .city-block .city {
+      font-size: clamp(48px, 7vw, 88px);
+      font-weight: 900;
+      line-height: 1;
+      letter-spacing: -0.01em;
+      margin-top: 8px;
+    }
+    .headline .city-block .place {
+      font-family: var(--sans);
+      margin-top: 12px; color: var(--ink-soft); font-size: 14px;
+    }
+    .headline .city-block .days {
+      font-family: var(--sans);
+      margin-top: 24px; font-size: 12px; color: var(--ink-faint);
+      letter-spacing: 0.12em; text-transform: uppercase;
+    }
+
+    .headline .verdict {
+      border-top: 1px solid var(--line);
+      padding-top: 16px;
+      display: flex; flex-direction: column; gap: 28px;
+    }
+    .headline .verdict .item .kicker {
+      font-family: var(--sans);
+      font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase;
+      color: var(--ink-faint); margin-bottom: 8px;
+    }
+    .headline .verdict .item .row {
+      display: flex; align-items: baseline; gap: 14px;
+    }
+    .headline .verdict .item .num {
+      font-size: 56px; font-weight: 900; line-height: 1;
+      letter-spacing: -0.01em;
+    }
+    .headline .verdict .item .label {
+      font-family: var(--sans); font-size: 14px; color: var(--ink-soft);
+    }
+    .headline .verdict .item.fire .num { color: var(--accent); }
+    .headline .verdict .item .sub {
+      font-family: var(--sans); margin-top: 6px; font-size: 13px; color: var(--ink-soft);
+    }
+
+    /* ---------- 不对称分栏：右侧补充情报 ---------- */
+    .notes {
+      display: grid;
+      grid-template-columns: 3fr 1fr;
+      gap: 48px;
+      margin-bottom: 64px;
+      padding-top: 16px;
+      border-top: 1px solid var(--rule);
+    }
+    .notes .copy {
+      font-size: 16px; line-height: 1.7; color: var(--ink);
+      max-width: 56ch;
+    }
+    .notes .copy .lead::first-letter {
+      font-size: 56px; float: left; line-height: 0.9;
+      margin: 6px 8px 0 0; font-weight: 800;
+    }
+    .notes .aside { font-family: var(--sans); font-size: 12px; color: var(--ink-faint); }
+    .notes .aside dl { display: grid; grid-template-columns: 1fr; gap: 8px; }
+    .notes .aside dt { letter-spacing: 0.14em; text-transform: uppercase; }
+    .notes .aside dd { color: var(--ink-soft); font-size: 13px; margin-bottom: 4px; }
+
+    /* ---------- 每日条目 ---------- */
+    .entries { border-top: 1px solid var(--line); }
+    .entry {
+      display: grid;
+      grid-template-columns: 180px 1fr 1.2fr;
+      gap: 40px;
+      padding: 36px 0;
+      border-bottom: 1px solid var(--rule);
+    }
+    .entry:last-child { border-bottom: none; }
+
+    /* 左侧：日期 + 大号评分 */
+    .entry .left { border-right: 1px solid var(--rule); padding-right: 24px; }
+    .entry .date {
+      font-family: var(--sans); font-size: 14px; font-weight: 600;
+    }
+    .entry .date .dow { color: var(--ink-faint); font-size: 12px; margin-left: 8px; }
+    .entry .score {
+      margin-top: 18px;
+      font-size: 72px; font-weight: 900; line-height: 1;
+      letter-spacing: -0.02em;
+    }
+    .entry .score .of { font-size: 18px; color: var(--ink-faint); font-weight: 400; }
+    .entry .level {
+      font-family: var(--sans);
+      margin-top: 10px; font-size: 11px; letter-spacing: 0.18em;
+      text-transform: uppercase; color: var(--ink-soft);
+    }
+    .entry .badge {
+      font-family: var(--sans);
+      display: inline-block; margin-top: 14px;
+      padding: 4px 10px;
+      background: var(--ink); color: var(--paper);
+      font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase;
+    }
+    .entry .badge.fire {
+      background: var(--accent); color: #fff;
+    }
+
+    /* 中间：天气 */
+    .entry .weather .line {
+      font-size: 18px; font-weight: 600;
+      margin-bottom: 4px;
+    }
+    .entry .weather .temp { color: var(--ink-soft); font-size: 15px; margin-bottom: 18px; }
+    .entry .weather .stats {
+      font-family: var(--sans);
+      font-size: 13px; color: var(--ink-soft); line-height: 1.9;
+      font-variant-numeric: tabular-nums;
+    }
+    .entry .weather .stats span { color: var(--ink); }
+
+    /* 右侧：拍摄手记 */
+    .entry .brief {
+      border-left: 1px solid var(--rule);
+      padding-left: 24px;
+    }
+    .entry .brief .head {
+      font-family: var(--sans);
+      font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase;
+      color: var(--ink-faint); margin-bottom: 10px;
+    }
+    .entry .brief p {
+      font-size: 15px; line-height: 1.7; color: var(--ink);
+    }
+    .entry .brief .times {
+      margin-top: 14px;
+      display: flex; gap: 24px;
+      font-size: 13px; color: var(--ink-soft);
+      font-variant-numeric: tabular-nums;
+    }
+    .entry .brief .times b { color: var(--ink); font-weight: 600; }
+
+    /* 火烧云手记段落高亮 */
+    .entry .brief p.fire { color: var(--accent); }
+
+    /* ---------- 页脚 ---------- */
+    footer.foot {
+      font-family: var(--sans);
+      margin-top: 80px;
+      padding-top: 24px;
+      border-top: 1.5px solid var(--line);
+      display: flex; justify-content: space-between;
+      font-size: 12px; color: var(--ink-faint);
+      letter-spacing: 0.04em;
+    }
+    footer.foot a { color: var(--ink-soft); text-decoration: none; border-bottom: 1px solid var(--rule); }
+
+    /* ---------- 响应式 ---------- */
+    @media (max-width: 880px) {
+      .headline { grid-template-columns: 1fr; gap: 32px; }
+      .notes { grid-template-columns: 1fr; gap: 24px; }
+      .entry { grid-template-columns: 1fr; gap: 18px; padding: 28px 0; }
+      .entry .left { border-right: none; padding-right: 0;
+                      border-bottom: 1px solid var(--rule); padding-bottom: 18px; }
+      .entry .brief { border-left: none; padding-left: 0; }
+      .search { grid-template-columns: 1fr; }
+      .search .cell { border-right: none; border-bottom: 1px solid var(--rule); }
+      .search .cell:last-child { border-bottom: none; }
+      .search button { padding: 18px 32px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <!-- 报头 -->
+    <header class="masthead">
+      <div class="brand">摄影天气 · Photo Weather</div>
+      <div class="meta" id="todayDate">—</div>
+    </header>
+
+    <!-- 查询条 -->
+    <form class="search" id="searchForm">
+      <div class="cell">
+        <span class="lbl">地点</span>
+        <input type="text" id="city" placeholder="城市名 / Location ID" value="{{ default_city }}" autocomplete="off">
+      </div>
+      <div class="cell">
+        <span class="lbl">范围</span>
+        <select id="days">
+          <option value="1">今日</option>
+          <option value="3" selected>未来 3 天</option>
+          <option value="7">未来 7 天</option>
+          <option value="10">未来 10 天</option>
+          <option value="15">未来 15 天</option>
+        </select>
+      </div>
+      <button type="submit" id="submitBtn">查询</button>
+    </form>
+
+    <!-- 状态区 -->
+    <div id="loading" class="status hidden">
+      <span class="dot"></span>正在从和风天气获取数据…
+    </div>
+    <div id="error" class="error hidden"></div>
+    <div id="welcome" class="status">输入地点开始 · 可留空使用默认城市</div>
+
+    <!-- 结果 -->
+    <div id="result" class="hidden">
+      <!-- 头条：城市 + 总结 -->
+      <section class="headline">
+        <div class="city-block">
+          <div class="kicker">Forecast for</div>
+          <div class="city" id="hCity">—</div>
+          <div class="place" id="hPlace">—</div>
+          <div class="days" id="hDays">—</div>
+        </div>
+        <div class="verdict">
+          <div class="item">
+            <div class="kicker">最佳拍摄日</div>
+            <div class="row">
+              <div class="num" id="vScore">—</div>
+              <div class="label" id="vLabel">—</div>
+            </div>
+            <div class="sub" id="vDate">—</div>
+          </div>
+          <div class="item fire">
+            <div class="kicker">最易出火烧云</div>
+            <div class="row">
+              <div class="num" id="vFireScore">—</div>
+              <div class="label" id="vFireLabel">—</div>
+            </div>
+            <div class="sub" id="vFireDate">—</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 旁注：总览描述 + 元信息 -->
+      <section class="notes">
+        <div class="copy">
+          <span class="lead" id="leadText">—</span>
+        </div>
+        <aside class="aside">
+          <dl>
+            <dt>数据源</dt><dd>和风天气 QWeather</dd>
+            <dt>判定模型</dt><dd>云量 / 能见度 / 降水 / 湿度综合</dd>
+            <dt>更新</dt><dd id="updatedAt">—</dd>
+          </dl>
+        </aside>
+      </section>
+
+      <!-- 每日条目 -->
+      <section class="entries" id="entries"></section>
+    </div>
+
+    <footer class="foot">
+      <span>评分仅供参考 · 实际天气瞬息万变</span>
+      <span>数据 <a href="https://www.qweather.com" target="_blank">QWeather</a></span>
+    </footer>
+  </div>
+
+  <script>
+    /* ---------- DOM ---------- */
+    const $loading = document.getElementById("loading");
+    const $error   = document.getElementById("error");
+    const $welcome = document.getElementById("welcome");
+    const $result  = document.getElementById("result");
+    const $entries = document.getElementById("entries");
+    const $submit  = document.getElementById("submitBtn");
+
+    /* ---------- 工具 ---------- */
+    const WEEKS = ["周日","周一","周二","周三","周四","周五","周六"];
+    const FIRE_DESC = {
+      "极高": "今天极有可能出现火烧云——日落前半小时到西面开阔地，云层一旦染上金红，整片天空都会是你想要的画面。",
+      "较高": "今天的云量条件利于出现晚霞，留意日落前 30 分钟的天空变化。",
+      "中等": "云量处于临界，可以碰碰运气——云边缘如果先染上橙红，抓紧拍。",
+      "较低": "今天火烧云概率偏低，更适合人像和建筑等不依赖天色的题材。",
+      "极低":  "天空条件不利于火烧云，放弃等晚霞，去拍别的题材吧。",
+    };
+    const LEVEL_DESC = {
+      "极佳":   "今日拍摄条件极佳，值得专程出门。",
+      "良好":   "整体条件不错，按计划出门即可。",
+      "一般":   "可拍但不出彩，适合练手或顺路取景。",
+      "较差":   "条件有限，建议降级题材或择日。",
+      "不适合": "今日不建议为摄影专程出门。",
+    };
+
+    function fmtDate(s) {
+      const d = new Date(s + "T00:00:00");
+      if (isNaN(d)) return s;
+      return `${d.getMonth() + 1} 月 ${d.getDate()} 日 · ${WEEKS[d.getDay()]}`;
+    }
+    function fmtNow() {
+      const d = new Date();
+      return `${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,"0")}.${String(d.getDate()).padStart(2,"0")}`;
+    }
+    function pickLead(advices, bestFireScore) {
+      if (bestFireScore >= 60) return "未来几天里有一天云量刚好，火烧云条件难得，值得提前踩点。";
+      if (bestFireScore >= 40) return "未来几天的云层处在临界附近——日落时多看两眼天空，别错过了晚霞。";
+      const bestScore = Math.max(...advices.map(a => a.overall_score));
+      if (bestScore >= 70)  return "接下来几天里有一两个晴天或通透的多云，是出门取景的好窗口。";
+      if (bestScore >= 50)  return "天气一般般，但也不是不能拍——挑一个能见度不错的时段出门即可。";
+      return "未来几天天气条件整体偏弱，可在家整理镜头清单，等下一个窗口。";
+    }
+
+    function show(el) { el.classList.remove("hidden"); }
+    function hide(el) { el.classList.add("hidden"); }
+    function showError(msg) {
+      $error.innerHTML = msg + '<span>请检查城市名 / Location ID，或稍后重试</span>';
+      show($error); hide($loading); hide($result); hide($welcome);
+    }
+
+    /* ---------- 提交 ---------- */
+    document.getElementById("searchForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const city = document.getElementById("city").value.trim();
+      const days = document.getElementById("days").value;
+      if (!city) { showError("请输入城市名称"); return; }
+
+      hide($welcome); hide($error); hide($result); show($loading);
+      $submit.disabled = true;
+
+      try {
+        const resp = await fetch(`/api/analyze?city=${encodeURIComponent(city)}&days=${days}`);
+        const data = await resp.json();
+        if (!data.ok) { showError(data.error || "查询失败"); return; }
+        render(data);
+      } catch (err) {
+        showError("网络请求失败：" + err.message);
+      } finally {
+        hide($loading);
+        $submit.disabled = false;
+      }
+    });
+
+    /* ---------- 渲染 ---------- */
+    function render(data) {
+      // 头条
+      document.getElementById("hCity").textContent = data.city;
+      const place = [data.adm, data.country].filter(Boolean).join(" · ");
+      document.getElementById("hPlace").textContent = place;
+      document.getElementById("hDays").textContent = `${data.days} 天预报 · 数据 ${fmtNow()}`;
+      document.getElementById("updatedAt").textContent = fmtNow();
+
+      const s = data.summary;
+      document.getElementById("vScore").textContent = s.best_score;
+      document.getElementById("vLabel").textContent = s.best_level;
+      document.getElementById("vDate").textContent  = fmtDate(s.best_day);
+
+      document.getElementById("vFireScore").textContent = s.best_fire_score;
+      document.getElementById("vFireLabel").textContent = s.best_fire_chance;
+      document.getElementById("vFireDate").textContent  =
+        s.best_fire_score >= 40 ? fmtDate(s.best_fire_day) : "未来窗口均偏弱";
+
+      // 旁注
+      document.getElementById("leadText").textContent =
+        pickLead(data.advices, s.best_fire_score);
+
+      // 每日
+      $entries.innerHTML = data.advices.map(a => entryHtml(a, a.date === s.best_day)).join("");
+
+      show($result);
+      document.getElementById("todayDate").textContent = fmtNow();
+    }
+
+    function entryHtml(a, isBest) {
+      const badge = isBest
+        ? `<span class="badge">最佳拍摄日</span>`
+        : (a.fire_cloud_score >= 60 ? `<span class="badge fire">火烧云高发</span>` : "");
+
+      // 拍摄手记段落：把 tips 拼成连贯叙述
+      const parts = [];
+      if (a.fire_cloud_score >= 60) parts.push(FIRE_DESC[a.fire_cloud_chance] || FIRE_DESC["较高"]);
+      else if (a.fire_cloud_score >= 40) parts.push(FIRE_DESC["中等"]);
+      parts.push(LEVEL_DESC[a.overall_level] || "");
+      if (a.tips && a.tips.length) parts.push(a.tips[Math.floor(a.tips.length / 2)]); // 取一条最具代表性的
+      const joined = parts.filter(Boolean).join(" ");
+
+      const sunRise = a.sunrise_time
+        ? `<div><b>${a.sunrise_time}</b> · 日出</div>`
+        : `<div>— · 日出</div>`;
+      const sunSet = a.sunset_time
+        ? `<div><b>${a.sunset_time}</b> · 日落</div>`
+        : `<div>— · 日落</div>`;
+
+      return `
+        <article class="entry">
+          <div class="left">
+            <div class="date">${fmtDate(a.date)}</div>
+            <div class="score">${a.overall_score}<span class="of">/100</span></div>
+            <div class="level">${a.overall_level}</div>
+            ${badge}
+          </div>
+          <div class="weather">
+            <div class="line">${a.weather_desc}</div>
+            <div class="temp">气温 ${a.temperature}</div>
+            <div class="stats">
+              湿度 <span>${a.humidity}</span><br>
+              风力 <span>${a.wind}</span><br>
+              能见度 <span>${a.visibility}</span><br>
+              云量 <span>${a.cloud_cover}</span>
+            </div>
+          </div>
+          <div class="brief">
+            <div class="head">拍摄手记</div>
+            <p>${joined}</p>
+            <div class="times">${sunRise}${sunSet}</div>
+          </div>
+        </article>`;
+    }
+
+    /* ---------- 启动 ---------- */
+    document.getElementById("todayDate").textContent = fmtNow();
+    if (document.getElementById("city").value.trim()) {
+      document.getElementById("searchForm").requestSubmit();
+    }
+  </script>
+</body>
+</html>

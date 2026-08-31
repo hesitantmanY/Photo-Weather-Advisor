@@ -1,0 +1,20 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# 本地配置（包含 API 密钥，不提交）
+config.py
+config.local.py
+
+# 环境变量与密钥文件
+.env
+*.pem
+
+# macOS
+.DS_Store
+
+# IDE
+.idea/
+.vscode/
