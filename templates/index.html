@@ -40,9 +40,9 @@
 
     /* ---------- 版心 ---------- */
     .page {
-      max-width: 1180px;
+      max-width: 1080px;
       margin: 0 auto;
-      padding: 36px 32px 80px;
+      padding: 32px 28px 56px;
     }
 
     /* ---------- 报头 ---------- */
@@ -53,8 +53,8 @@
       display: flex; align-items: baseline; justify-content: space-between;
       gap: 24px;
     }
-    .masthead .brand { font-family: var(--sans); font-size: 13px; letter-spacing: 0.16em; text-transform: uppercase; }
-    .masthead .meta { font-family: var(--sans); font-size: 12px; color: var(--ink-faint); font-variant-numeric: tabular-nums; }
+    .masthead .brand { font-family: var(--sans); font-size: 14px; letter-spacing: 0.16em; text-transform: uppercase; }
+    .masthead .meta { font-family: var(--sans); font-size: 13px; color: var(--ink-faint); font-variant-numeric: tabular-nums; }
 
     /* ---------- 搜索区（极简一条线） ---------- */
     .search {
@@ -63,7 +63,7 @@
       gap: 0;
       border-top: 1px solid var(--line);
       border-bottom: 1px solid var(--line);
-      margin-bottom: 48px;
+      margin-bottom: 40px;
     }
     .search .cell {
       padding: 14px 16px;
@@ -73,19 +73,19 @@
     .search .cell:last-child { border-right: none; }
     .search .lbl {
       font-family: var(--sans);
-      font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase;
+      font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase;
       color: var(--ink-faint); flex-shrink: 0;
     }
     .search input, .search select {
       flex: 1; border: none; outline: none; background: transparent;
-      font-family: inherit; font-size: 16px; color: var(--ink);
+      font-family: inherit; font-size: 17px; color: var(--ink);
       padding: 2px 0;
     }
     .search input::placeholder { color: var(--ink-faint); }
     .search button {
       background: var(--ink); color: var(--paper);
       border: none; padding: 0 32px;
-      font-family: var(--sans); font-size: 13px;
+      font-family: var(--sans); font-size: 14px;
       letter-spacing: 0.16em; text-transform: uppercase;
       cursor: pointer; transition: background 0.15s;
     }
@@ -98,7 +98,7 @@
       text-align: center;
       padding: 80px 20px;
       color: var(--ink-soft);
-      font-size: 14px;
+      font-size: 15px;
     }
     .status .dot {
       display: inline-block; width: 6px; height: 6px;
@@ -114,26 +114,26 @@
       padding: 32px 0;
       text-align: center;
       color: var(--ink);
-      font-size: 15px;
+      font-size: 16px;
     }
-    .error span { color: var(--ink-faint); font-size: 12px; display: block; margin-top: 6px; }
+    .error span { color: var(--ink-faint); font-size: 13px; display: block; margin-top: 6px; }
     .hidden { display: none !important; }
 
     /* ---------- 头条：城市 + 总结 ---------- */
     .headline {
       display: grid;
       grid-template-columns: 1.6fr 1fr;
-      gap: 64px;
-      margin-bottom: 56px;
+      gap: 48px;
+      margin-bottom: 44px;
     }
     .headline .city-block { border-top: 2px solid var(--line); padding-top: 16px; }
     .headline .city-block .kicker {
       font-family: var(--sans);
-      font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase;
+      font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase;
       color: var(--ink-faint);
     }
     .headline .city-block .city {
-      font-size: clamp(48px, 7vw, 88px);
+      font-size: clamp(52px, 7.5vw, 96px);
       font-weight: 900;
       line-height: 1;
       letter-spacing: -0.01em;
@@ -141,11 +141,11 @@
     }
     .headline .city-block .place {
       font-family: var(--sans);
-      margin-top: 12px; color: var(--ink-soft); font-size: 14px;
+      margin-top: 12px; color: var(--ink-soft); font-size: 15px;
     }
     .headline .city-block .days {
       font-family: var(--sans);
-      margin-top: 24px; font-size: 12px; color: var(--ink-faint);
+      margin-top: 24px; font-size: 13px; color: var(--ink-faint);
       letter-spacing: 0.12em; text-transform: uppercase;
     }
 
@@ -156,53 +156,53 @@
     }
     .headline .verdict .item .kicker {
       font-family: var(--sans);
-      font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase;
+      font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase;
       color: var(--ink-faint); margin-bottom: 8px;
     }
     .headline .verdict .item .row {
       display: flex; align-items: baseline; gap: 14px;
     }
     .headline .verdict .item .num {
-      font-size: 56px; font-weight: 900; line-height: 1;
+      font-size: 64px; font-weight: 900; line-height: 1;
       letter-spacing: -0.01em;
     }
     .headline .verdict .item .label {
-      font-family: var(--sans); font-size: 14px; color: var(--ink-soft);
+      font-family: var(--sans); font-size: 15px; color: var(--ink-soft);
     }
     .headline .verdict .item.fire .num { color: var(--accent); }
     .headline .verdict .item .sub {
-      font-family: var(--sans); margin-top: 6px; font-size: 13px; color: var(--ink-soft);
+      font-family: var(--sans); margin-top: 6px; font-size: 14px; color: var(--ink-soft);
     }
 
     /* ---------- 不对称分栏：右侧补充情报 ---------- */
     .notes {
       display: grid;
       grid-template-columns: 3fr 1fr;
-      gap: 48px;
-      margin-bottom: 64px;
+      gap: 40px;
+      margin-bottom: 48px;
       padding-top: 16px;
       border-top: 1px solid var(--rule);
     }
     .notes .copy {
-      font-size: 16px; line-height: 1.7; color: var(--ink);
+      font-size: 17px; line-height: 1.7; color: var(--ink);
       max-width: 56ch;
     }
     .notes .copy .lead::first-letter {
-      font-size: 56px; float: left; line-height: 0.9;
+      font-size: 64px; float: left; line-height: 0.9;
       margin: 6px 8px 0 0; font-weight: 800;
     }
-    .notes .aside { font-family: var(--sans); font-size: 12px; color: var(--ink-faint); }
+    .notes .aside { font-family: var(--sans); font-size: 13px; color: var(--ink-faint); }
     .notes .aside dl { display: grid; grid-template-columns: 1fr; gap: 8px; }
     .notes .aside dt { letter-spacing: 0.14em; text-transform: uppercase; }
-    .notes .aside dd { color: var(--ink-soft); font-size: 13px; margin-bottom: 4px; }
+    .notes .aside dd { color: var(--ink-soft); font-size: 14px; margin-bottom: 4px; }
 
     /* ---------- 每日条目 ---------- */
     .entries { border-top: 1px solid var(--line); }
     .entry {
       display: grid;
-      grid-template-columns: 180px 1fr 1.2fr;
-      gap: 40px;
-      padding: 36px 0;
+      grid-template-columns: 200px 1fr 1.2fr;
+      gap: 32px;
+      padding: 28px 0;
       border-bottom: 1px solid var(--rule);
     }
     .entry:last-child { border-bottom: none; }
@@ -210,23 +210,23 @@
     /* 左侧：日期 + 大号评分 */
     .entry .left { border-right: 1px solid var(--rule); padding-right: 24px; }
     .entry .date {
-      font-family: var(--sans); font-size: 14px; font-weight: 600;
+      font-family: var(--sans); font-size: 15px; font-weight: 600;
     }
-    .entry .date .dow { color: var(--ink-faint); font-size: 12px; margin-left: 8px; }
+    .entry .date .dow { color: var(--ink-faint); font-size: 13px; margin-left: 8px; }
     .entry .score {
       margin-top: 18px;
-      font-size: 72px; font-weight: 900; line-height: 1;
+      font-size: 80px; font-weight: 900; line-height: 1;
       letter-spacing: -0.02em;
     }
-    .entry .score .of { font-size: 18px; color: var(--ink-faint); font-weight: 400; }
+    .entry .score .of { font-size: 20px; color: var(--ink-faint); font-weight: 400; }
     .entry .level {
       font-family: var(--sans);
-      margin-top: 10px; font-size: 11px; letter-spacing: 0.18em;
+      margin-top: 10px; font-size: 12px; letter-spacing: 0.18em;
       text-transform: uppercase; color: var(--ink-soft);
     }
     .entry .factors {
       font-family: var(--sans);
-      margin-top: 10px; font-size: 11px; line-height: 1.6;
+      margin-top: 10px; font-size: 12px; line-height: 1.6;
       color: var(--ink-faint);
     }
     .entry .badge {
@@ -234,7 +234,7 @@
       display: inline-block; margin-top: 14px;
       padding: 4px 10px;
       background: var(--ink); color: var(--paper);
-      font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase;
+      font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase;
     }
     .entry .badge.fire {
       background: var(--accent); color: #fff;
@@ -242,13 +242,13 @@
 
     /* 中间：天气 */
     .entry .weather .line {
-      font-size: 18px; font-weight: 600;
+      font-size: 19px; font-weight: 600;
       margin-bottom: 4px;
     }
-    .entry .weather .temp { color: var(--ink-soft); font-size: 15px; margin-bottom: 18px; }
+    .entry .weather .temp { color: var(--ink-soft); font-size: 16px; margin-bottom: 18px; }
     .entry .weather .stats {
       font-family: var(--sans);
-      font-size: 13px; color: var(--ink-soft); line-height: 1.9;
+      font-size: 14px; color: var(--ink-soft); line-height: 1.9;
       font-variant-numeric: tabular-nums;
     }
     .entry .weather .stats span { color: var(--ink); }
@@ -260,16 +260,16 @@
     }
     .entry .brief .head {
       font-family: var(--sans);
-      font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase;
+      font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase;
       color: var(--ink-faint); margin-bottom: 10px;
     }
     .entry .brief p {
-      font-size: 15px; line-height: 1.7; color: var(--ink);
+      font-size: 16px; line-height: 1.7; color: var(--ink);
     }
     .entry .brief .times {
       margin-top: 14px;
       display: flex; gap: 24px;
-      font-size: 13px; color: var(--ink-soft);
+      font-size: 14px; color: var(--ink-soft);
       font-variant-numeric: tabular-nums;
     }
     .entry .brief .times b { color: var(--ink); font-weight: 600; }
@@ -280,42 +280,42 @@
     /* ---------- 拍摄计划卡 ---------- */
     .plan {
       border-top: 2px solid var(--line);
-      margin: -8px 0 56px;
+      margin: -8px 0 44px;
       padding-top: 18px;
     }
     .plan-head {
       font-family: var(--sans);
-      font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase;
+      font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase;
       color: var(--ink-faint); margin-bottom: 16px;
     }
     .plan-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
-      gap: 28px 32px;
+      gap: 24px 28px;
     }
     .plan-item .kicker {
       display: block;
       font-family: var(--sans);
-      font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase;
+      font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase;
       color: var(--ink-faint); margin-bottom: 6px;
     }
     .plan-item b {
-      font-size: 14px; font-weight: 600; line-height: 1.6;
+      font-size: 15px; font-weight: 600; line-height: 1.6;
     }
     .plan-summary {
       margin-top: 18px; padding-top: 14px;
       border-top: 1px solid var(--rule);
-      font-size: 15px; color: var(--ink);
+      font-size: 16px; color: var(--ink);
     }
 
     /* ---------- 页脚 ---------- */
     footer.foot {
       font-family: var(--sans);
-      margin-top: 80px;
-      padding-top: 24px;
+      margin-top: 56px;
+      padding-top: 20px;
       border-top: 1.5px solid var(--line);
       display: flex; justify-content: space-between;
-      font-size: 12px; color: var(--ink-faint);
+      font-size: 13px; color: var(--ink-faint);
       letter-spacing: 0.04em;
     }
     footer.foot a { color: var(--ink-soft); text-decoration: none; border-bottom: 1px solid var(--rule); }
@@ -347,7 +347,7 @@
     <form class="search" id="searchForm">
       <div class="cell">
         <span class="lbl">地点</span>
-        <input type="text" id="city" placeholder="城市名 / Location ID" value="{{ default_city }}" autocomplete="off">
+        <input type="text" id="city" placeholder="城市名 / Location ID" autocomplete="off">
       </div>
       <div class="cell">
         <span class="lbl">范围</span>
@@ -517,14 +517,13 @@
       const city = document.getElementById("city").value.trim();
       const days = document.getElementById("days").value;
       const genre = document.getElementById("genre").value;
-      if (!city) { showError("请输入城市名称"); return; }
-
       hide($welcome); hide($error); hide($result); show($loading);
       $submit.disabled = true;
 
       try {
-        const resp = await fetch(
-          `/api/analyze?city=${encodeURIComponent(city)}&days=${days}&genre=${genre}`);
+        const params = new URLSearchParams({ days, genre });
+        if (city) params.set("city", city);
+        const resp = await fetch(`/api/analyze?${params}`);
         const data = await resp.json();
         if (!data.ok) { showError(data.error || "查询失败"); return; }
         render(data);
@@ -599,7 +598,7 @@
       if (a.fire_cloud_score >= 60) parts.push(FIRE_DESC[a.fire_cloud_chance] || FIRE_DESC["较高"]);
       else if (a.fire_cloud_score >= 40) parts.push(FIRE_DESC["中等"]);
       parts.push(LEVEL_DESC[a.overall_level] || "");
-      if (a.tips && a.tips.length) parts.push(a.tips[Math.floor(a.tips.length / 2)]); // 取一条最具代表性的
+      if (a.tips && a.tips.length) parts.push(...a.tips.slice(0, 2)); // 取前两条，增强信息密度
       const joined = parts.filter(Boolean).join(" ");
 
       const sunRise = a.sunrise_time
@@ -649,9 +648,6 @@
 
     /* ---------- 启动 ---------- */
     document.getElementById("todayDate").textContent = fmtNow();
-    if (document.getElementById("city").value.trim()) {
-      document.getElementById("searchForm").requestSubmit();
-    }
   </script>
 </body>
 </html>

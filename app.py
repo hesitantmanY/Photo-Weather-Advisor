@@ -8,7 +8,7 @@
   1. 在 config.py 中填写 API_HOST 和 API_KEY
   2. 安装依赖: pip install -r requirements.txt
   3. 运行: python app.py
-  4. 浏览器打开: http://127.0.0.1:5000
+  4. 浏览器打开: http://127.0.0.1:5001
 
 复用已有模块：
   - weather_api.py  : 城市搜索、天气预报
@@ -29,10 +29,7 @@ app = Flask(__name__)
 @app.route("/")
 def index():
     """渲染单页界面。"""
-    return render_template(
-        "index.html",
-        default_city=getattr(config, "DEFAULT_CITY", ""),
-    )
+    return render_template("index.html")
 
 
 @app.route("/api/analyze")
@@ -136,10 +133,16 @@ def api_analyze():
     })
 
 
-if __name__ == "__main__":
+def main():
+    """启动本地开发服务器。"""
     print("=" * 60)
     print("  摄影天气助手 Web 版已启动")
-    print("  请在浏览器打开: http://127.0.0.1:5000")
+    print("  请在浏览器打开: http://127.0.0.1:5001")
     print("  数据来源: 和风天气 QWeather")
     print("=" * 60)
-    app.run(host="127.0.0.1", port=5000, debug=True)
+    # macOS 的 AirPlay 接收器会占用 5000；5001 避免 localhost 访问被系统服务拦截。
+    app.run(host="127.0.0.1", port=5001, debug=True)
+
+
+if __name__ == "__main__":
+    main()
