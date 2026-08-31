@@ -19,8 +19,8 @@ from dataclasses import asdict
 
 from flask import Flask, jsonify, render_template, request
 
-from weather_api import lookup_city, get_daily_weather, check_config
-from photo_advisor import analyze_daily
+from weather_api import lookup_city, get_daily_weather, get_hourly_weather, check_config
+from photo_advisor import GENRES, analyze_daily
 import config
 
 app = Flask(__name__)
@@ -43,6 +43,7 @@ def api_analyze():
     查询参数：
       city : 城市名称或 LocationID（留空则用默认城市）
       days : 预报天数，1/3/7/10/15（默认 3）
+      genre: 摄影题材，landscape/portrait/astro/long_exposure（默认 landscape）
 
     返回 JSON：
       { ok, city, adm, country, location_id, days, advices: [...] }
@@ -67,6 +68,9 @@ def api_analyze():
         days = 3
     if days not in (1, 3, 7, 10, 15):
         days = 3
+    genre = request.args.get("genre", "landscape")
+    if genre not in GENRES:
+        genre = "landscape"
 
     # 3. 查询城市
     city_info = lookup_city(city_input)
@@ -89,11 +93,25 @@ def api_analyze():
             "error": "获取天气数据失败，请检查 API 配置和网络连接。",
         }), 502
 
-    # 5. 分析
-    advices = [asdict(analyze_daily(daily)) for daily in daily_list]
+    # 5. 分析（含逐小时数据与天文计算）
+    hourly_list = get_hourly_weather(location_id, hours=168)
+    hourly_by_date = {}
+    for h in hourly_list or []:
+        hourly_by_date.setdefault(h.get("fxTime", "")[:10], []).append(h)
 
-    # 6. 计算总结信息（最佳拍摄日 / 最可能火烧云）
-    best_day = max(advices, key=lambda a: a["overall_score"]) if advices else None
+    advices = [
+        asdict(analyze_daily(
+            daily,
+            hourly_by_date=hourly_by_date,
+            lat=city_info.get("lat"),
+            lon=city_info.get("lon"),
+            genre=genre,
+        ))
+        for daily in daily_list
+    ]
+
+    # 6. 计算总结信息（所选题材最佳日 / 最可能火烧云）
+    best_day = max(advices, key=lambda a: a["genre_scores"][genre]["score"]) if advices else None
     best_fire = max(advices, key=lambda a: a["fire_cloud_score"]) if advices else None
 
     return jsonify({
@@ -103,14 +121,17 @@ def api_analyze():
         "country": country,
         "location_id": location_id,
         "days": len(advices),
+        "genre": genre,
+        "genre_label": GENRES.get(genre, genre),
         "advices": advices,
         "summary": {
             "best_day": best_day["date"] if best_day else "",
-            "best_score": best_day["overall_score"] if best_day else 0,
-            "best_level": best_day["overall_level"] if best_day else "",
+            "best_score": best_day["genre_scores"][genre]["score"] if best_day else 0,
+            "best_level": best_day["genre_scores"][genre]["level"] if best_day else "",
             "best_fire_day": best_fire["date"] if best_fire else "",
             "best_fire_chance": best_fire["fire_cloud_chance"] if best_fire else "",
             "best_fire_score": best_fire["fire_cloud_score"] if best_fire else 0,
+            "plan": best_day["plan"] if best_day else {},
         },
     })
 

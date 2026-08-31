@@ -59,7 +59,7 @@
     /* ---------- 搜索区（极简一条线） ---------- */
     .search {
       display: grid;
-      grid-template-columns: 2fr 1fr auto;
+      grid-template-columns: 2fr 1fr 1fr auto;
       gap: 0;
       border-top: 1px solid var(--line);
       border-bottom: 1px solid var(--line);
@@ -224,6 +224,11 @@
       margin-top: 10px; font-size: 11px; letter-spacing: 0.18em;
       text-transform: uppercase; color: var(--ink-soft);
     }
+    .entry .factors {
+      font-family: var(--sans);
+      margin-top: 10px; font-size: 11px; line-height: 1.6;
+      color: var(--ink-faint);
+    }
     .entry .badge {
       font-family: var(--sans);
       display: inline-block; margin-top: 14px;
@@ -271,6 +276,37 @@
 
     /* 火烧云手记段落高亮 */
     .entry .brief p.fire { color: var(--accent); }
+
+    /* ---------- 拍摄计划卡 ---------- */
+    .plan {
+      border-top: 2px solid var(--line);
+      margin: -8px 0 56px;
+      padding-top: 18px;
+    }
+    .plan-head {
+      font-family: var(--sans);
+      font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--ink-faint); margin-bottom: 16px;
+    }
+    .plan-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      gap: 28px 32px;
+    }
+    .plan-item .kicker {
+      display: block;
+      font-family: var(--sans);
+      font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase;
+      color: var(--ink-faint); margin-bottom: 6px;
+    }
+    .plan-item b {
+      font-size: 14px; font-weight: 600; line-height: 1.6;
+    }
+    .plan-summary {
+      margin-top: 18px; padding-top: 14px;
+      border-top: 1px solid var(--rule);
+      font-size: 15px; color: var(--ink);
+    }
 
     /* ---------- 页脚 ---------- */
     footer.foot {
@@ -323,6 +359,15 @@
           <option value="15">未来 15 天</option>
         </select>
       </div>
+      <div class="cell">
+        <span class="lbl">题材</span>
+        <select id="genre">
+          <option value="landscape" selected>风光</option>
+          <option value="portrait">人像</option>
+          <option value="astro">星空</option>
+          <option value="long_exposure">长曝光</option>
+        </select>
+      </div>
       <button type="submit" id="submitBtn">查询</button>
     </form>
 
@@ -361,6 +406,34 @@
             <div class="sub" id="vFireDate">—</div>
           </div>
         </div>
+      </section>
+
+      <!-- 拍摄计划卡 -->
+      <section class="plan hidden" id="planCard">
+        <div class="plan-head">拍摄计划 · <span id="planGenre">—</span></div>
+        <div class="plan-grid">
+          <div class="plan-item">
+            <span class="kicker">日期</span>
+            <b id="planDate">—</b>
+          </div>
+          <div class="plan-item">
+            <span class="kicker">时段</span>
+            <b id="planTime">—</b>
+          </div>
+          <div class="plan-item">
+            <span class="kicker">方向</span>
+            <b id="planDir">—</b>
+          </div>
+          <div class="plan-item">
+            <span class="kicker">器材</span>
+            <b id="planGear">—</b>
+          </div>
+          <div class="plan-item">
+            <span class="kicker">风险</span>
+            <b id="planRisks">—</b>
+          </div>
+        </div>
+        <p class="plan-summary" id="planSummary">—</p>
       </section>
 
       <!-- 旁注：总览描述 + 元信息 -->
@@ -443,13 +516,15 @@
       e.preventDefault();
       const city = document.getElementById("city").value.trim();
       const days = document.getElementById("days").value;
+      const genre = document.getElementById("genre").value;
       if (!city) { showError("请输入城市名称"); return; }
 
       hide($welcome); hide($error); hide($result); show($loading);
       $submit.disabled = true;
 
       try {
-        const resp = await fetch(`/api/analyze?city=${encodeURIComponent(city)}&days=${days}`);
+        const resp = await fetch(
+          `/api/analyze?city=${encodeURIComponent(city)}&days=${days}&genre=${genre}`);
         const data = await resp.json();
         if (!data.ok) { showError(data.error || "查询失败"); return; }
         render(data);
@@ -467,7 +542,8 @@
       document.getElementById("hCity").textContent = data.city;
       const place = [data.adm, data.country].filter(Boolean).join(" · ");
       document.getElementById("hPlace").textContent = place;
-      document.getElementById("hDays").textContent = `${data.days} 天预报 · 数据 ${fmtNow()}`;
+      document.getElementById("hDays").textContent =
+        `${data.days} 天预报 · ${data.genre_label} · 数据 ${fmtNow()}`;
       document.getElementById("updatedAt").textContent = fmtNow();
 
       const s = data.summary;
@@ -480,18 +556,40 @@
       document.getElementById("vFireDate").textContent  =
         s.best_fire_score >= 40 ? fmtDate(s.best_fire_day) : "未来窗口均偏弱";
 
+      // 拍摄计划卡
+      const plan = s.plan || {};
+      document.getElementById("planGenre").textContent = data.genre_label;
+      document.getElementById("planDate").textContent =
+        plan.date ? fmtDate(plan.date) : "—";
+      document.getElementById("planTime").textContent =
+        plan.time_window ? `${plan.time_window}（${plan.window_label || ""}）` : "—";
+      document.getElementById("planDir").textContent = plan.direction || "—";
+      document.getElementById("planGear").textContent =
+        (plan.gear || []).join(" / ") || "—";
+      document.getElementById("planRisks").textContent =
+        (plan.risks || []).join("；") || "无";
+      document.getElementById("planSummary").textContent = plan.summary || "";
+      document.getElementById("planCard").classList.remove("hidden");
+
       // 旁注
       document.getElementById("leadText").textContent =
         pickLead(data.advices, s.best_fire_score);
 
       // 每日
-      $entries.innerHTML = data.advices.map(a => entryHtml(a, a.date === s.best_day)).join("");
+      $entries.innerHTML = data.advices
+        .map(a => entryHtml(a, a.date === s.best_day, data.genre)).join("");
 
       show($result);
       document.getElementById("todayDate").textContent = fmtNow();
     }
 
-    function entryHtml(a, isBest) {
+    function entryHtml(a, isBest, genre) {
+      const gs = a.genre_scores[genre] || {};
+      const score = gs.score != null ? gs.score : a.overall_score;
+      const level = gs.level || a.overall_level;
+      const factors = Object.entries(gs.factors || {})
+        .map(([k, v]) => `${k} ${v > 0 ? "+" : ""}${v}`)
+        .join(" · ");
       const badge = isBest
         ? `<span class="badge">最佳拍摄日</span>`
         : (a.fire_cloud_score >= 60 ? `<span class="badge fire">火烧云高发</span>` : "");
@@ -511,12 +609,23 @@
         ? `<div><b>${a.sunset_time}</b> · 日落</div>`
         : `<div>— · 日落</div>`;
 
+      const extra = [];
+      if (a.golden_evening && a.golden_evening[0])
+        extra.push(`日落黄金 ${a.golden_evening.join(" - ")}`);
+      if (a.golden_morning && a.golden_morning[0])
+        extra.push(`日出黄金 ${a.golden_morning.join(" - ")}`);
+      if (a.moon_phase)
+        extra.push(`月相 ${a.moon_phase}（${Math.round((a.moon_illumination || 0) * 100)}%）`);
+      if (a.fog_chance && a.fog_chance !== "低") extra.push(`晨雾 ${a.fog_chance}`);
+      if (a.frost_chance && a.frost_chance !== "低") extra.push(`霜冻 ${a.frost_chance}`);
+
       return `
         <article class="entry">
           <div class="left">
             <div class="date">${fmtDate(a.date)}</div>
-            <div class="score">${a.overall_score}<span class="of">/100</span></div>
-            <div class="level">${a.overall_level}</div>
+            <div class="score">${score}<span class="of">/100</span></div>
+            <div class="level">${level}</div>
+            ${factors ? `<div class="factors">${factors}</div>` : ""}
             ${badge}
           </div>
           <div class="weather">
@@ -528,6 +637,7 @@
               能见度 <span>${a.visibility}</span><br>
               云量 <span>${a.cloud_cover}</span>
             </div>
+            ${extra.length ? `<div class="stats">${extra.join("<br>")}</div>` : ""}
           </div>
           <div class="brief">
             <div class="head">拍摄手记</div>

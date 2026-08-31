@@ -13,6 +13,26 @@ import requests
 import config
 
 
+# ponytail: 单进程内存缓存，多实例部署时需换共享缓存（如 Redis）
+_CACHE: dict = {}
+_CACHE_TTL = {
+    "geo": 24 * 3600,      # 城市信息基本不变
+    "daily": 6 * 3600,     # 日预报每天更新若干次
+    "hourly": 30 * 60,     # 逐小时预报每小时更新
+}
+
+
+def _cached(key: str, ttl: int, fn):
+    """带 TTL 的简单内存缓存。"""
+    now = time.time()
+    hit = _CACHE.get(key)
+    if hit and now - hit[0] < ttl:
+        return hit[1]
+    value = fn()
+    _CACHE[key] = (now, value)
+    return value
+
+
 def _generate_jwt_token() -> str:
     """
     使用 Ed25519 私钥生成 JWT Token。
@@ -67,6 +87,23 @@ def _build_url(host: str, path: str) -> str:
     return f"{host}{path}"
 
 
+def _request_json(host: str, path: str, params: dict) -> Optional[dict]:
+    """发起 GET 请求并返回 JSON，失败时打印错误并返回 None。"""
+    url = _build_url(host, path)
+    try:
+        headers = _get_auth_headers()
+        resp = requests.get(url, params=params, headers=headers, timeout=config.REQUEST_TIMEOUT)
+        resp.raise_for_status()
+        return resp.json()
+    except requests.exceptions.Timeout:
+        print("  [错误] API 请求超时，请检查网络连接")
+    except requests.exceptions.ConnectionError:
+        print("  [错误] 无法连接到和风天气 API，请检查 API_HOST 配置")
+    except Exception as e:
+        print(f"  [错误] API 请求异常: {e}")
+    return None
+
+
 def lookup_city(city_name: str) -> Optional[dict]:
     """
     城市搜索：根据城市名称查询 LocationID 和城市信息。
@@ -77,34 +114,22 @@ def lookup_city(city_name: str) -> Optional[dict]:
     Returns:
         城市信息字典，包含 name, id, lat, lon 等字段；未找到返回 None
     """
-    url = _build_url(config.GEOAPI_HOST, "/geo/v2/city/lookup")
     params = {
         "location": city_name,
         "lang": "zh",
         "number": 1,
     }
 
-    try:
-        headers = _get_auth_headers()
-        resp = requests.get(url, params=params, headers=headers, timeout=config.REQUEST_TIMEOUT)
-        resp.raise_for_status()
-        data = resp.json()
-
+    def fetch():
+        data = _request_json(config.GEOAPI_HOST, "/geo/v2/city/lookup", params)
+        if data is None:
+            return None
         if data.get("code") == "200" and data.get("location"):
             return data["location"][0]
-        else:
-            print(f"  [警告] 城市搜索失败: code={data.get('code')}")
-            return None
+        print(f"  [警告] 城市搜索失败: code={data.get('code')}")
+        return None
 
-    except requests.exceptions.Timeout:
-        print("  [错误] 城市搜索请求超时，请检查网络连接")
-        return None
-    except requests.exceptions.ConnectionError:
-        print("  [错误] 无法连接到和风天气 API，请检查 API_HOST 配置")
-        return None
-    except Exception as e:
-        print(f"  [错误] 城市搜索异常: {e}")
-        return None
+    return _cached(f"geo:{city_name}", _CACHE_TTL["geo"], fetch)
 
 
 def get_daily_weather(location: str, days: int = 3) -> Optional[list]:
@@ -122,33 +147,52 @@ def get_daily_weather(location: str, days: int = 3) -> Optional[list]:
     days_map = {1: "3d", 3: "3d", 7: "7d", 10: "10d", 15: "15d", 30: "30d"}
     days_param = days_map.get(days, "3d")
 
-    url = _build_url(config.API_HOST, f"/v7/weather/{days_param}")
     params = {
         "location": location,
         "lang": "zh",
     }
 
-    try:
-        headers = _get_auth_headers()
-        resp = requests.get(url, params=params, headers=headers, timeout=config.REQUEST_TIMEOUT)
-        resp.raise_for_status()
-        data = resp.json()
-
+    def fetch():
+        data = _request_json(config.API_HOST, f"/v7/weather/{days_param}", params)
+        if data is None:
+            return None
         if data.get("code") == "200" and data.get("daily"):
             return data["daily"]
-        else:
-            print(f"  [警告] 天气查询失败: code={data.get('code')}")
-            return None
+        print(f"  [警告] 天气查询失败: code={data.get('code')}")
+        return None
 
-    except requests.exceptions.Timeout:
-        print("  [错误] 天气查询请求超时")
+    return _cached(f"daily:{location}:{days_param}", _CACHE_TTL["daily"], fetch)
+
+
+def get_hourly_weather(location: str, hours: int = 168) -> Optional[list]:
+    """
+    获取逐小时天气预报。
+
+    Args:
+        location: LocationID
+        hours: 24/72/168（1/3/7 天）
+
+    Returns:
+        逐小时数据列表，含 fxTime, temp, text, cloud, precip, pop,
+        humidity, dew, windSpeed 等字段
+    """
+    hours_map = {24: "24h", 72: "72h", 168: "168h"}
+    hours_param = hours_map.get(hours, "168h")
+    params = {
+        "location": location,
+        "lang": "zh",
+    }
+
+    def fetch():
+        data = _request_json(config.API_HOST, f"/v7/weather/{hours_param}", params)
+        if data is None:
+            return None
+        if data.get("code") == "200" and data.get("hourly"):
+            return data["hourly"]
+        print(f"  [警告] 逐小时天气查询失败: code={data.get('code')}")
         return None
-    except requests.exceptions.ConnectionError:
-        print("  [错误] 无法连接到和风天气 API，请检查 API_HOST 配置")
-        return None
-    except Exception as e:
-        print(f"  [错误] 天气查询异常: {e}")
-        return None
+
+    return _cached(f"hourly:{location}:{hours_param}", _CACHE_TTL["hourly"], fetch)
 
 
 def check_config() -> bool:
